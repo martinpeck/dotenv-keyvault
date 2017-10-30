@@ -30,7 +30,9 @@ require('dotenv-keyvault').config( () => {
 });
 ```
 
-The `config` funtion takes either an Azure Active Directory (AAD) access token, or a function that returns an AAD access token. This is the bearer token that will be used when making calls to Key Vault. Depending upon your scenario, you can obtain this token in a number of ways:
+The `config` function accepts either an Azure Active Directory (AAD) access token, or a function that returns an AAD access token. This is the bearer token that will be used when making calls to Key Vault. 
+
+Depending upon your scenario, you can obtain this token in a number of ways:
 
 * TODO
 * TODO
@@ -49,12 +51,38 @@ SECRET2=kv:https://mykeyvault.vault.azure.net/secrets/secret2/9036e3d87f924977a3
 ENVVAR1=somevalue1
 ENVVAR2=somevalue2
 ```
+Once `config` has returned, you will be able to access these 4 values using:
+
+``` javascript
+console.log(process.env.SECRET1); // logs the value of secret1, obtained from Azure Key Vault
+console.log(process.env.SECRET2); // logs the value of secret2, obtained from Azure Key Vault
+console.log(process.env.SECRET3); // logs "somevalue1"
+console.log(process.env.SECRET4); // logs "somevalue2"
+```
+
+# Azure Key Vault - Secret Identifiers
+
+The secret identifier is a url. For example:
+
+`https://mykeyvault.vault.azure.net/secrets/secret1/dfc4252878b649f2bcf1c811247825c9`
+
+Each secret identified is constructed in the following way:
+
+`https://[VAULT].vault.azure.net/secrets/[SECRET]/[VERSION]`
+
+Where:
+
+* [VAULT] is the name of your Key Vault
+* [SECRET] is the name of the secret contained in the Key Vault
+* [VERSION] is the version of the secret you want to retrieve
+
+You can drop the [VERSION] if you simply want the latest value for this secret.
 
 # Rules for Populating `process.env`
 
-Under the covers, `dotenv-keyvault` uses `dotenv`. Therefore, it will populate `process.env` using the following rules:
+Under the covers, `dotenv-keyvault` uses `dotenv`. Therefore, it will populate `process.env` in the following manner:
 
-1. If a value exists within the process's environment (i.e. an environment variable exists) then this takes precedence over everything else and it will **not** use the .env file value *or* call into Key Vault for the value
+1. If a value exists within the process's environment (i.e. an environment variable exists) then this takes precedence over everything else and it will **not** use the .env file value *or* call into Key Vault for the value (the environment always wins)
 2. For values defined in the `.env` file, and not present in the environemnt, `process.env` will be populated with those values
 3. For values defined in the `.env` file, where the value is prefixed with `kv:` what follows is assumed to be the secret identifier of a secret stored in Key Vault, and so `dotenv-keyvault` will attempt to populate the value from Key Vault. If this fails, `dotenv-keyvault` will throw `UnableToPopulateKVBackedEnvVar`
 
