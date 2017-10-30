@@ -97,6 +97,7 @@ Under the covers, `dotenv-keyvault` uses `dotenv`. Therefore, it will populate `
 
 # Further Reading
 
-- See <https://docs.microsoft.com/en-us/rest/api/keyvault/authentication--requests-and-responses#authentication> for more details on Azure Active Directory access tokens.
-- See <https://docs.microsoft.com/en-us/rest/api/keyvault/GetSecret/GetSecret> for details of the API call made when retrieving secret values from Azure Key Vault, and <https://docs.microsoft.com/en-us/rest/api/keyvault/> for general information about the Key Vault API
-- 
+- dotenv: <https://github.com/motdotla/dotenv>
+- Azure Active Directory : Access Tokens:  <https://docs.microsoft.com/en-us/rest/api/keyvault/authentication--requests-and-responses#authentication>
+- Key Vault API: <https://docs.microsoft.com/en-us/rest/api/keyvault/> 
+- Access Secrets in Key Vault: <https://docs.microsoft.com/en-us/rest/api/keyvault/GetSecret/GetSecret> 
