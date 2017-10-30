@@ -2,6 +2,15 @@
 
 Identical to `dotnev`, but calls into Azure Key Vault to populate `process.env` with secrets stored in Key Vault.
 
+With `dotenv-keyvault` you can...
+
+- populate your environment from a `.env` file
+- for local development, set up "secrets" in your .env that allow you to debug and build your app
+- in non-production environments, point your `.env` file at a non-production Key Vault
+- in production, have your code access secrets from the production Key Vault
+
+... and throughout, the only thing that changes is the contents of your `.env` file.
+
 # Installation
 
 ~~`npm install --save dotenv-keyvault`~~
