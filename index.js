@@ -4,8 +4,8 @@ const dotenv = require('dotenv');
 const request = require('request-promise');
 
 /**
- * @param {*} endpoint 
- * @param {*} secret 
+ * @param {*} endpoint
+ * @param {*} secret
  * @returns {string} the Active Directory Access token
  */
 function getAADTokenFromMSI(endpoint, secret) {
@@ -25,7 +25,7 @@ module.exports = {
             tokenGet = adToken;
         }
         const newEnv = dotenv.config(props).parsed;
-    
+
         return Promise.resolve(tokenGet).then((token) => {
             const fetches = Object.keys(newEnv).filter((key) => {
                 return newEnv[key].match(/^kv:/);
@@ -41,7 +41,7 @@ module.exports = {
                     process.env[key] = secretResponse.body;
                 });
             });
-            return Promise.all(fetches);    
-        });    
+            return Promise.all(fetches);
+        });
     }
 };
