@@ -36,4 +36,6 @@ describe('dotenv-keyvault', () => {
     it('returns a promise representing open fetches', () => {
         expect(dotenvKeyvault.config({ adToken: 'SOME_TOKEN' })).to.respondTo('then');
     });
+    it('sets the secret EV to the value property of the KeyVault API JSON response');
+    it('passes through all properties to the underlying dotenv library');
 });
