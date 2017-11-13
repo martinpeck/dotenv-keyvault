@@ -2,6 +2,7 @@
 
 const dotenv = require('dotenv');
 const request = require('request-promise');
+const logger = console;
 
 /**
  * @param {*} endpoint
@@ -33,12 +34,16 @@ module.exports = {
                 const uri = newEnv[key].replace(/^kv:/, '');
                 return request({
                     method: 'GET',
+                    json: true,
                     uri,
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 }).then((secretResponse) => {
-                    process.env[key] = secretResponse.body;
+                    process.env[key] = secretResponse.value;
+                }).catch((err) => {
+                    logger.error('Problem fetching KeyVault secret for', key, err.message);
+                    throw err;
                 });
             });
             return Promise.all(fetches);
