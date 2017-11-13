@@ -14,22 +14,24 @@ describe('dotenv-keyvault', () => {
     afterEach(() => {
         revert();
     });
-    it('takes an Azure Active Directory token as a function', () => {
+    it('takes an Azure Active Directory token as a function', (done) => {
         const fakeADToken = 'SOME_TOKEN';
-        const configSpy = sinon.stub().returns(Promise.resolve(fakeADToken));
-        dotenvKeyvault(configSpy);
-        expect(configSpy.called).to.equal(true);
+        const configSpy = sinon.stub().returns(fakeADToken);
+        dotenvKeyvault.config(configSpy).then(() => {
+            expect(configSpy.called).to.equal(true);
+            done();            
+        });
     });
     it('calls keyvault with the AD access token', () => {
-        dotenvKeyvault('SOME_TOKEN');
+        dotenvKeyvault.config('SOME_TOKEN');
         expect(requestSpy.called).to.equal(true);
         expect(requestSpy.args[0][0]).to.have.nested.property('headers.Authorization').that.contains('SOME_TOKEN');
     });
     it('does nothing with non-secret variables', () => {
-        dotenvKeyvault(() => 'SOME_TOKEN');
+        dotenvKeyvault.config(() => 'SOME_TOKEN');
         expect(process.env).to.have.property('ENVVAR1', 'somevalue1');
     });
     it('returns a promise representing open fetches', () => {
-        expect(dotenvKeyvault('SOME_TOKEN')).to.respondTo('then');
+        expect(dotenvKeyvault.config('SOME_TOKEN')).to.respondTo('then');
     });
 });

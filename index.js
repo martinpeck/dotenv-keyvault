@@ -3,22 +3,45 @@
 const dotenv = require('dotenv');
 const request = require('request-promise');
 
-module.exports = function dotenvKeyvault(adToken) {
-    const tokenGet = typeof adToken === 'string' ? adToken : adToken();
-    const newEnv = dotenv.config().parsed;
-    return Promise.resolve(tokenGet).then((token) => {
-        const fetches = Object.keys(newEnv).filter((key) => {
-            return newEnv[key].match(/^kv:/);
-        }).map((key) => {
-            const uri = newEnv[key].replace(/^kv:/, '');
-            return request({
-                method: 'GET',
-                uri,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+/**
+ * @param {*} endpoint 
+ * @param {*} secret 
+ * @returns {string} the Active Directory Access token
+ */
+async function getAADTokenFromMSI(endpoint, secret) {
+    // todo
+}
+
+module.exports = {
+    async config(props) {
+        const { adToken } = props;
+        let tokenGet;
+        if (!adToken) {
+            // no token - get one using Managed Service Identity process.env
+            tokenGet = await getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
+        } else if (typeof adToken === 'string') {
+            tokenGet = adToken;
+        } else {
+            tokenGet = await adToken();
+        }
+        const newEnv = dotenv.config(props).parsed;
+    
+        return Promise.resolve(tokenGet).then((token) => {
+            const fetches = Object.keys(newEnv).filter((key) => {
+                return newEnv[key].match(/^kv:/);
+            }).map((key) => {
+                const uri = newEnv[key].replace(/^kv:/, '');
+                return request({
+                    method: 'GET',
+                    uri,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }).then((secretResponse) => {
+                    process.env[key] = secretResponse.body;
+                });
             });
-        });
-        return Promise.all(fetches);    
-    });
+            return Promise.all(fetches);    
+        });    
+    }
 };
