@@ -8,21 +8,21 @@ const request = require('request-promise');
  * @param {*} secret 
  * @returns {string} the Active Directory Access token
  */
-async function getAADTokenFromMSI(endpoint, secret) {
+function getAADTokenFromMSI(endpoint, secret) {
     // todo
 }
 
 module.exports = {
-    async config(props) {
+    config(props) {
         const { adToken } = props;
         let tokenGet;
         if (!adToken) {
             // no token - get one using Managed Service Identity process.env
-            tokenGet = await getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
+            tokenGet = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
+        } else if (typeof adToken === 'function') {
+            tokenGet = adToken();
         } else if (typeof adToken === 'string') {
             tokenGet = adToken;
-        } else {
-            tokenGet = await adToken();
         }
         const newEnv = dotenv.config(props).parsed;
     
