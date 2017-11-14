@@ -4,6 +4,12 @@ const sinon = require('sinon');
 const { expect } = require('chai');
 var ServerMock = require('mock-http-server');
 
+function createFakeDotenv(parsed) {
+    return {
+        parsed,
+    };
+}
+
 describe('dotenv-keyvault', () => {
     describe('unit', () => {
         let requestSpy = sinon.stub().returns(Promise.resolve({}));
@@ -19,46 +25,56 @@ describe('dotenv-keyvault', () => {
         it('takes an Azure Active Directory token as a function', (done) => {
             const fakeADToken = 'SOME_TOKEN';
             const configSpy = sinon.stub().returns(fakeADToken);
-            const keyVaultGetter = dotenvKeyvault.config({ adToken: configSpy });
-            keyVaultGetter({}).then(() => {
-                expect(configSpy.called).to.equal(true);
-                done();
-            }).catch(done);
+            const keyVaultGetter = dotenvKeyvault.config({ aadAccessToken: configSpy });
+            keyVaultGetter({})
+                .then(() => {
+                    expect(configSpy.called).to.equal(true);
+                    done();
+                })
+                .catch(done);
         });
         it('calls keyvault with the AD access token', (done) => {
-            const keyVaultGetter = dotenvKeyvault.config({ adToken: 'SOME_TOKEN' });
-            keyVaultGetter({ MYPLAIN: 'PLAINTEXT', MYSECRET: 'kv:myfakekeyvault.com' }).then(() => {
-                expect(requestSpy.called).to.equal(true);
-                expect(requestSpy.args[0][0]).to.have.nested.property('headers.Authorization').that.contains('SOME_TOKEN');
-                done();
-            }).catch(done);
+            const keyVaultGetter = dotenvKeyvault.config({ aadAccessToken: 'SOME_TOKEN' });
+            keyVaultGetter(createFakeDotenv({ MYPLAIN: 'PLAINTEXT', MYSECRET: 'kv:myfakekeyvault.com' }))
+                .then(() => {
+                    expect(requestSpy.called).to.equal(true);
+                    expect(requestSpy.args[0][0]).to.have.nested.property('headers.Authorization').that.contains('SOME_TOKEN');
+                    done();
+                })
+                .catch(done);
         });
-        it('does nothing with non-secret variables', () => {
-            var myEnv = { MYTRUTH: 'THETRUTH' };
-            const keyVaultGetter = dotenvKeyvault.config({ adToken: () => 'SOME_TOKEN' });
-            keyVaultGetter(myEnv).then(() => {
-                expect(myEnv).to.have.property('MYTRUTH', 'THETRUTH');
-            });
+        it('does nothing with non-secret variables', (done) => {
+            const myEnv = createFakeDotenv({ MYTRUTH: 'THETRUTH' });
+            const keyVaultGetter = dotenvKeyvault.config({ aadAccessToken: () => 'SOME_TOKEN' });
+            keyVaultGetter(myEnv)
+                .then((nonSecretEnv) => {
+                    expect(nonSecretEnv).to.have.property('MYTRUTH', 'THETRUTH');
+                    done();
+                })
+                .catch(done);
         });
         it('returns a promise representing open fetches', () => {
-            const keyVaultGetter = dotenvKeyvault.config({ adToken: 'SOME_TOKEN' });
-            expect(keyVaultGetter({ adToken: 'SOME_TOKEN' })).to.respondTo('then');
+            const keyVaultGetter = dotenvKeyvault.config({ aadAccessToken: 'SOME_TOKEN' });
+            expect(keyVaultGetter()).to.respondTo('then');
         });
     });
 
     describe('integration', () => {
-        var msiServer = new ServerMock({ host: 'localhost', port: 9000 });
-        var kvServer = new ServerMock({ host: 'localhost', port: 9001 });
+        const msiServer = new ServerMock({ host: 'localhost', port: 9000 });
+        const kvServer = new ServerMock({ host: 'localhost', port: 9001 });
+        const { MSI_ENDPOINT, MSI_SECRET } = process.env;
 
         beforeEach((done) => {
+            process.env.MSI_ENDPOINT = 'http://localhost:9000';
+            process.env.MSI_SECRET = 'MY_SECRET_KEY';
             msiServer.start(() => {
                 kvServer.start(done);
             });
-            process.env.MSI_ENDPOINT = 'http://localhost:9000';
-            process.env.MSI_SECRET = 'MY_SECRET_KEY';
         });
 
         afterEach((done) => {
+            process.env.MSI_ENDPOINT = MSI_ENDPOINT;
+            process.env.MSI_SECRET = MSI_SECRET;
             kvServer.stop(() => {
                 msiServer.stop(done);
             });
@@ -96,7 +112,10 @@ describe('dotenv-keyvault', () => {
                 },
             });
 
-            const dotEnvConfig = { MYTRUTH: 'TRUTH', MYSECRET: 'kv:http://localhost:9001/secrets/MYSECRET' };
+            const dotEnvConfig = createFakeDotenv({
+                MYTRUTH: 'TRUTH',
+                MYSECRET: 'kv:http://localhost:9001/secrets/MYSECRET',
+            });
             const keyVaultEnvGetter = dotenvKeyvault.config();
 
             keyVaultEnvGetter(dotEnvConfig)
@@ -106,9 +125,7 @@ describe('dotenv-keyvault', () => {
                     expect(keyVaultConfigWithSecrets.MYSECRET === 'MYSECRETVALUE');
                     done();
                 })
-                .catch((err) => {
-                    done(err);
-                });
+                .catch(done);
         });
     });
 });
