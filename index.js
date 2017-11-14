@@ -2,8 +2,7 @@
 
 const request = require('request-promise');
 
-TODO:
-let logger = console.warn;
+const logger = console;
 
 /**
  * @param {*} endpoint
