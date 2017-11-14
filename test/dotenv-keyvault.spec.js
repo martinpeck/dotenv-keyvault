@@ -43,6 +43,9 @@ describe('dotenv-keyvault', () => {
         it('passes through all properties to the underlying dotenv library');
     });
     describe('integration', () => {
-
+        it('succesfully acquires an AD token', () => {
+            dotenvKeyvault.config().then(() => {
+            });
+        });
     });
 });
