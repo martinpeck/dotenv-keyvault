@@ -13,7 +13,7 @@ function getAADTokenFromMSI(endpoint, secret) {
     const vaultResourceUrl = 'https://vault.azure.net';
     const apiVersion = '2017-09-01';
 
-    var options = {
+    const options = {
         uri: `${endpoint}/?resource=${vaultResourceUrl}&api-version=${apiVersion}`,
         headers: {
             Secret: secret,
@@ -25,20 +25,23 @@ function getAADTokenFromMSI(endpoint, secret) {
 }
 
 module.exports = {
+    /**
+     * @param {{aadAccessToken:*}} props
+     */
     config(props = {}) {
         const _props = props;
 
         return (_env) => {
-            const { adToken } = _props;
+            const { aadAccessToken } = _props;
 
             let tokenGet;
-            if (!adToken) {
+            if (!aadAccessToken) {
                 // no token - get one using Managed Service Identity process.env
                 tokenGet = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
-            } else if (typeof adToken === 'function') {
-                tokenGet = adToken();
-            } else if (typeof adToken === 'string') {
-                tokenGet = adToken;
+            } else if (typeof aadAccessToken === 'function') {
+                tokenGet = aadAccessToken();
+            } else if (typeof aadAccessToken === 'string') {
+                tokenGet = aadAccessToken;
             }
 
             return Promise.resolve(tokenGet).then((token) => {
