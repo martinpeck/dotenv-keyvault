@@ -120,9 +120,11 @@ describe('dotenv-keyvault', () => {
 
             keyVaultEnvGetter(dotEnvConfig)
                 .then((keyVaultConfigWithSecrets) => {
-                    expect(msiServer.requests() === 1);
-                    expect(kvServer.requests() === 1);
-                    expect(keyVaultConfigWithSecrets.MYSECRET === 'MYSECRETVALUE');
+                    // calls with the MSI_SECRET
+                    expect(msiServer.requests()).to.have.nested.property('[0].headers.secret', process.env.MSI_SECRET);
+                    // calls with the access token received
+                    expect(kvServer.requests()).to.have.nested.property('[0].headers.authorization', 'Bearer eyJ0eXAiblahblah');
+                    expect(keyVaultConfigWithSecrets).to.have.property('MYSECRET', 'MYSECRETVALUE');
                     done();
                 })
                 .catch(done);

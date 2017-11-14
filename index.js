@@ -21,7 +21,8 @@ function getAADTokenFromMSI(endpoint, secret) {
         json: true,
     };
 
-    return request(options);
+    return request(options)
+        .then((response) => response.access_token);
 }
 
 module.exports = {
