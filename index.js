@@ -48,7 +48,7 @@ module.exports = {
                 const fetches = Object.keys(dotenvParsed)
                     .filter((key) => dotenvParsed[key].match(/^kv:/))
                     .map((key) => {
-                        const uri = dotenvParsed[key].replace(/^kv:/, '');
+                        const uri = dotenvParsed[key].replace(/^kv:/, '') + '?api-version=2016-10-01';
                         return new Promise((resolve, reject) => {
                             return request({
                                 method: 'GET',
