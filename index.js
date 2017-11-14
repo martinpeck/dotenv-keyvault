@@ -1,8 +1,9 @@
 'use strict';
 
-const dotenv = require('dotenv');
 const request = require('request-promise');
-const logger = console;
+
+TODO:
+let logger = console.warn;
 
 /**
  * @param {*} endpoint
@@ -10,43 +11,63 @@ const logger = console;
  * @returns {string} the Active Directory Access token
  */
 function getAADTokenFromMSI(endpoint, secret) {
-    // todo
+    const vaultResourceUrl = 'https://vault.azure.net';
+    const apiVersion = '2017-09-01';
+
+    var options = {
+        uri: `${endpoint}/?resource=${vaultResourceUrl}&api-version=${apiVersion}`,
+        headers: {
+            Secret: secret,
+        },
+        json: true,
+    };
+
+    return request(options);
 }
 
 module.exports = {
-    config(props) {
-        const { adToken } = props;
-        let tokenGet;
-        if (!adToken) {
-            // no token - get one using Managed Service Identity process.env
-            tokenGet = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
-        } else if (typeof adToken === 'function') {
-            tokenGet = adToken();
-        } else if (typeof adToken === 'string') {
-            tokenGet = adToken;
-        }
-        const newEnv = dotenv.config(props).parsed;
+    config(props = {}) {
+        const _props = props;
 
-        return Promise.resolve(tokenGet).then((token) => {
-            const fetches = Object.keys(newEnv).filter((key) => {
-                return newEnv[key].match(/^kv:/);
-            }).map((key) => {
-                const uri = newEnv[key].replace(/^kv:/, '');
-                return request({
-                    method: 'GET',
-                    json: true,
-                    uri,
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }).then((secretResponse) => {
-                    process.env[key] = secretResponse.value;
-                }).catch((err) => {
-                    logger.error('Problem fetching KeyVault secret for', key, err.message);
-                    throw err;
+        return (_env) => {
+            const { adToken } = _props;
+
+            let tokenGet;
+            if (!adToken) {
+                // no token - get one using Managed Service Identity process.env
+                tokenGet = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
+            } else if (typeof adToken === 'function') {
+                tokenGet = adToken();
+            } else if (typeof adToken === 'string') {
+                tokenGet = adToken;
+            }
+
+            return Promise.resolve(tokenGet).then((token) => {
+                const fetches = Object.keys(_env).filter((key) => {
+                    return _env[key].match(/^kv:/);
+                }).map((key) => {
+                    const uri = _env[key].replace(/^kv:/, '');
+                    return new Promise((resolve, reject) => {
+                        return request({
+                            method: 'GET',
+                            json: true,
+                            uri,
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }).then((secretResponse) => {
+                            _env[key] = secretResponse.value;
+                            resolve();
+                        }).catch((err) => {
+                            logger.error('Problem fetching KeyVault secret for', key, err.message);
+                            reject(err);
+                        });
+                    });
+                });
+                return Promise.all(fetches).then(() => {
+                    return _env;
                 });
             });
-            return Promise.all(fetches);
-        });
-    }
+        };
+    },
 };
