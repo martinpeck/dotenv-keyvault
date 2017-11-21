@@ -1,10 +1,15 @@
 # dotenv-keyvault
 
-Identical to `dotnev`, but calls into Azure Key Vault to populate `process.env` with secrets stored in Key Vault.
+Use `dotenv` to load a `.env` or your `process.env` which should contain your environment.
+
+For Key Vault secrets, specify the Key Vault Secret URL inside inside `.env`, prefixed with `kv:`, like below:
+
+```
+SECRET1=kv:https://supersecret.vault.azure.net/secrets/secret1/
+```
 
 With `dotenv-keyvault` you can...
 
-- populate your environment from a `.env` file
 - for local development, set up "secrets" in your .env that allow you to debug and build your app
 - in non-production environments, point your `.env` file at a non-production Key Vault
 - in production, have your code access secrets from the production Key Vault
@@ -13,38 +18,37 @@ With `dotenv-keyvault` you can...
 
 # Installation
 
-~~`npm install --save dotenv-keyvault`~~
+`npm install --save dotenv-keyvault`
 
-~~` yarn add dotenv-keyvault`~~
-
-> NOTE: The package described in this README.md does not yet exist! This is an example of **README Driven Development**! 
->
-> The text here describes a package that I'm considering building. 
->
-> If you feel this would be a useful package please consider starring this repository, adding a Thumbs-Up to the Github issue "README FEEDBACK", or providing more detailed feedback as comment on that issue. Thanks!
+`yarn add dotenv-keyvault`
 
 # Usage
 
-Usage is almost identical to `dotenv`:
+Usage in tandem with `dotenv` and enabling [Managed Service Instance] on your Function App:
 
-``` javascript
-require('dotenv-keyvault').config(aadAcccessToken);
-```
-
-or 
-
-``` javascript
-require('dotenv-keyvault').config( () => {
-    // code to aquire and return an Azure AD Access Token goes here
-});
+```js
+const dotenvConfig = require('dotenv').config();
+const keyVaultGetter = require('dotenv-keyvault').config();
+const ensureKeyVaultLoaded = keyVaultGetter(dotenvConfig);
+module.exports = function myFunctionApp(context, req) {
+	ensureKeyVaultLoaded.then(function keyvaultLoaded(envWithKeyvaultSecrets) {
+		// access secrets here
+	});    
+};
 ```
 
 The `config` function accepts either an Azure Active Directory (AAD) access token, or a function that returns an AAD access token. This is the bearer token that will be used when making calls to Key Vault. 
 
 Depending upon your scenario, you can obtain this token in a number of ways:
 
-* TODO
-* TODO
+```js
+// with string:
+require('dotenv-keyvault').config(aadAcccessToken);
+// with function:
+require('dotenv-keyvault').config(function getOwnAccessToken() {
+    // code to acquire and return an Azure AD Access Token goes here
+});
+```
 
 # Example `.env` file
 
@@ -60,13 +64,18 @@ SECRET2=kv:https://mykeyvault.vault.azure.net/secrets/secret2/9036e3d87f924977a3
 ENVVAR1=somevalue1
 ENVVAR2=somevalue2
 ```
-Once `config` has returned, you will be able to access these 4 values using:
+In JS, you will be able to access these 4 values using:
 
-``` javascript
-console.log(process.env.SECRET1); // logs the value of secret1, obtained from Azure Key Vault
-console.log(process.env.SECRET2); // logs the value of secret2, obtained from Azure Key Vault
-console.log(process.env.SECRET3); // logs "somevalue1"
-console.log(process.env.SECRET4); // logs "somevalue2"
+```js
+const keyVaultGetter = require('dotenv-keyvault').config();
+const ensureKeyVaultLoaded = keyVaultGetter(dotenvConfig);
+ensureKeyVaultLoaded.then(function keyvaultLoaded(envWithKeyvaultSecrets) {
+	// access secrets here
+    console.log(envWithKeyvaultSecrets.SECRET1); // logs the value of secret1, obtained from Azure Key Vault
+    console.log(envWithKeyvaultSecrets.SECRET2); // logs the value of secret2, obtained from Azure Key Vault
+    console.log(envWithKeyvaultSecrets.SECRET3); // logs "somevalue1"
+    console.log(envWithKeyvaultSecrets.SECRET4); // logs "somevalue2"
+});
 ```
 
 # Azure Key Vault - Secret Identifiers

@@ -1,0 +1,43 @@
+{
+  "name": "dotenv-keyvault",
+  "version": "0.1.0",
+  "description": "Use Azure Key Vault to populate process.env with secrets stored in Key Vault",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/*.spec.js",
+    "lint": "eslint -c .eslintrc.json --ignore-path .eslintignore ./",
+    "lint-fix": "eslint -c .eslintrc.json --ignore-path .eslintignore ./ --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/willmorgan/dotenv-keyvault.git"
+  },
+  "keywords": [
+    "azure",
+    "keyvault",
+    "key",
+    "vault"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/willmorgan/dotenv-keyvault/issues"
+  },
+  "homepage": "https://github.com/willmorgan/dotenv-keyvault#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.11.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-security": "^1.4.0",
+    "mocha": "^4.0.1",
+    "mock-http-server": "^0.2.0",
+    "rewire": "^3.0.0",
+    "sinon": "^4.1.2"
+  },
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2"
+  }
+}
