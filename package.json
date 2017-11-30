@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/willmorgan/dotenv-keyvault.git"
+    "url": "git+https://github.com/martinpeck/dotenv-keyvault.git"
   },
   "keywords": [
     "azure",
@@ -21,9 +21,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/willmorgan/dotenv-keyvault/issues"
+    "url": "https://github.com/martinpeck/dotenv-keyvault/issues"
   },
-  "homepage": "https://github.com/willmorgan/dotenv-keyvault#readme",
+  "homepage": "https://github.com/martinpeck/dotenv-keyvault#readme",
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.11.0",
