@@ -1,5 +1,60 @@
 # dotenv-keyvault
 
+Azure Key Vault is a service that lets you, among other things, securely store secrets (name/value pairs). 'dotenv-keyvault' is a npm package makes it easier to retrieve those secrets from Key Vault. 'dotenv-keyvault' was written with Azure Functions in mind, and makes use of Azure Managed Service Identity to authenticate against Key Vault.
+
+So, if you're...
+
+1. Writing Azure Functions, Azure App Services, with JavaScript/Node.js
+2. Have secrets (API keys, or other tokens) that you want to store securely and audit/manage centrally
+
+... then you're in the right place!
+
+## Overview
+
+Let's assume you're writing an Azure Function and it needs to call a 3rd party API. This particular API requires you to pass an API key when you call it. This API key is a "secret" that only you, and the 3rd party API know. 
+
+So, you need to store that API key somewhere. Let's also assume:
+
+- The API key has some value. You want to limit the number of people who can see it, and you certainly don't want everyone in your engineering team having access to it.
+- You have different API keys for different environments. Developers will have a an API key for their local development, your non-production environments (CI, test, staging etc) will have other API keys, and your production environment will use your most valuable API key
+- The API key might change over time. 
+- You need to prove to people (auditors, security teams) that you've restricted access to this secret.
+
+One nice solution to all of this is to use your environment to store this API key. If you're following the methodology of a 12 Factor App (https://12factor.net/) then you'll probably want these API keys to be stored in the environment along with other config (https://12factor.net/config). BUT, if you need to tightly control your secret, and show that only authorised users/systems can access it, this might not be good enough.
+
+**This is where Key Vault comes in**. You can store your secret, the API key, in Key Vault. Now, only authenticated services and users can access the API key. 
+
+"But...how do I access Key Vault. Also, what do I do during local development?"
+
+Good question. **This is where `dotenv-keyvault` comes in**. 
+
+`dotenv-keyvault`, in combination with `dotenv`, takes the output of `dotenv` (which is a combination of your environment varibles, plus anything defined in a `.env` file), and then resolves any specially crafted environment variables against Key Vault. The end result is a config object containing:
+
+- values from your environment
+- values resolved against Key Vault
+
+To make authenticated calls against Key Vault you need an Azure Active Directory (AAD) Bearer token. Obtaining one of these is easy if you're using the Managed Service Identity (MSI) feature of Azure Functions and Azure App Services, and if that's the case `dotenv-keyvault` does all the work to obtain this token for you. If you're not, or want to obtain your own AAD Bearer token, then you can supply that token to `dotenv-keyvault`.
+
+"Enough of this talking...Let's see an example!"
+
+OK, but first, some further reading...
+
+## Further Reading
+
+If you're unfamiliar with `dotenv` then you should check it out here: 
+- <https://github.com/motdotla/dotenv>
+
+If you're unfamiliar with Azure Key Vault, then this document is a good place to start:
+- <https://docs.microsoft.com/en-us/azure/key-vault/key-vault-whatis>
+
+If you want to know the Managed Service Identity (MSI) obtains a Bearer token to access Key Vault, you should read these:
+- https://docs.microsoft.com/en-us/azure/active-directory/msi-overview
+- https://docs.microsoft.com/en-us/azure/app-service/app-service-managed-service-identity
+
+## Example
+
+**TODO**
+
 Use `dotenv` to load a `.env` or your `process.env` which should contain your environment.
 
 For Key Vault secrets, specify the Key Vault Secret URL inside inside `.env`, prefixed with `kv:`, like below:
