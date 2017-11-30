@@ -9,12 +9,11 @@ const logger = console;
  * @param {*} secret
  * @returns {string} the Active Directory Access token
  */
-function getAADTokenFromMSI(endpoint, secret) {
-    const vaultResourceUrl = 'https://vault.azure.net';
+function getAADTokenFromMSI(endpoint, secret, resource) {
     const apiVersion = '2017-09-01';
 
     const options = {
-        uri: `${endpoint}/?resource=${vaultResourceUrl}&api-version=${apiVersion}`,
+        uri: `${endpoint}/?resource=${resource}&api-version=${apiVersion}`,
         headers: {
             Secret: secret,
         },
@@ -32,19 +31,20 @@ module.exports = {
     config(props = {}) {
         const { aadAccessToken } = props;
 
-        let tokenGet;
+        let aadToken;
         if (!aadAccessToken) {
             // no token - get one using Managed Service Identity inside process.env
-            tokenGet = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET);
+            const resource = 'https://vault.azure.net';
+            aadToken = getAADTokenFromMSI(process.env.MSI_ENDPOINT, process.env.MSI_SECRET, resource);
         } else if (typeof aadAccessToken === 'function') {
-            tokenGet = aadAccessToken();
+            aadToken = aadAccessToken();
         } else if (typeof aadAccessToken === 'string') {
-            tokenGet = aadAccessToken;
+            aadToken = aadAccessToken;
         }
         return (dotenvConfig = {}) => {
             const dotenvParsed = dotenvConfig.parsed || {};
             const envWithKeyvault = Object.assign({}, dotenvParsed);
-            return Promise.resolve(tokenGet).then((token) => {
+            return Promise.resolve(aadToken).then((token) => {
                 const fetches = Object.keys(dotenvParsed)
                     .filter((key) => dotenvParsed[key].match(/^kv:/))
                     .map((key) => {
