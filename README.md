@@ -51,7 +51,11 @@ If you want to know the Managed Service Identity (MSI) obtains a Bearer token to
 - https://docs.microsoft.com/en-us/azure/active-directory/msi-overview
 - https://docs.microsoft.com/en-us/azure/app-service/app-service-managed-service-identity
 
-## Example
+## Examples
+
+An example Azure function that uses `dotenv-keyvault` can be found here:
+
+<https://github.com/martinpeck/dotenv-keyvault-example>
 
 **TODO**
 
