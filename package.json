@@ -1,6 +1,6 @@
 {
   "name": "dotenv-keyvault",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Works with dotenv to resolve dotenv config and retrieve the value of secrets from Azure Key Vault.",
   "main": "index.js",
   "scripts": {
